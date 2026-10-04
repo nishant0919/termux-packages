@@ -22,6 +22,16 @@ TERMUX_PKG_DEPENDS="bzip2, coreutils, curl, dash, diffutils, findutils, gawk, gr
 TERMUX_PKG_RECOMMENDS="ed, dos2unix, inetutils, net-tools, patch, unzip"
 
 termux_step_pre_configure() {
+	# PocketForge: rewrite com.termux -> com.pocketforge.app in the sources.
+	#
+	# pkg, termux-setup-package-manager and the rest embed the Termux package name
+	# as literal strings. properties.sh sets TERMUX_APP__PACKAGE_NAME, which covers
+	# configure substitutions, but not strings already baked into .in templates that
+	# hardcode com.termux. Left alone, pkg writes an AndroidManifest.xml naming
+	# com.termux and a sources.list pointing at Termux's mirrors -- both useless
+	# under a different app id, and the second actively dangerous, since those
+	# binaries are built for the wrong prefix.
+	find . -type f -print0 | xargs -0 sed -i "s/com\.termux/$TERMUX_APP_PACKAGE/g"
 	autoreconf -vfi
 }
 
